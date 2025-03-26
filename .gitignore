@@ -41,3 +41,9 @@ next-env.d.ts
 
 # NX
 .nx/cache 
+# Editor
+.cursor/
+
+# NPM locks (using Yarn)
+package-lock.json
+**/package-lock.json
