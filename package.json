@@ -1,0 +1,27 @@
+{
+  "name": "vibez-foundation",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "dev:web": "cd apps/web && yarn dev",
+    "dev:api": "cd apps/api && yarn dev",
+    "dev": "concurrently \"yarn dev:web\" \"yarn dev:api\"",
+    "build:web": "cd apps/web && yarn build",
+    "build:api": "cd apps/api && yarn build",
+    "build": "yarn build:web && yarn build:api",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  }
+} 
