@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users of the platform
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  firstName       String
+  lastName        String
+  hashedPassword  String
+  profileImageUrl String?
+  bio             String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isVerified      Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  
+  // Relations
+  funds           Fund[]    @relation("UserFunds")
+  donations       Donation[] @relation("UserDonations")
+  favorites       Favorite[] @relation("UserFavorites")
+}
+
+// Funds created by users
+model Fund {
+  id              String    @id @default(uuid())
+  name            String
+  description     String
+  imageUrl        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isActive        Boolean   @default(true)
+  goalAmount      Float?
+  raisedAmount    Float     @default(0)
+  
+  // Endaoment integration
+  endaomentFundId String?   @unique
+  
+  // Relations
+  createdBy       User      @relation("UserFunds", fields: [userId], references: [id])
+  userId          String
+  donations       Donation[] @relation("FundDonations")
+  organizations   FundOrganization[] @relation("FundOrganizations")
+  favorites       Favorite[] @relation("FundFavorites")
+}
+
+// Organizations that can receive donations
+model Organization {
+  id              String    @id @default(uuid())
+  name            String
+  description     String
+  imageUrl        String?
+  website         String?
+  ein             String    @unique // Employer Identification Number
+  cause           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isVerified      Boolean   @default(false)
+  
+  // Endaoment integration
+  endaomentOrgId  String?   @unique
+  
+  // Relations
+  funds           FundOrganization[] @relation("OrganizationFunds")
+  donations       Donation[] @relation("OrganizationDonations")
+}
+
+// Many-to-many relationship between Funds and Organizations
+model FundOrganization {
+  id              String    @id @default(uuid())
+  allocationPercentage Float @default(100)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  fund            Fund      @relation("FundOrganizations", fields: [fundId], references: [id])
+  fundId          String
+  organization    Organization @relation("OrganizationFunds", fields: [organizationId], references: [id])
+  organizationId  String
+
+  @@unique([fundId, organizationId])
+}
+
+// Donations made by users
+model Donation {
+  id              String    @id @default(uuid())
+  amount          Float
+  transactionId   String?   @unique
+  status          String    @default("pending") // pending, completed, failed
+  message         String?
+  isAnonymous     Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  donor           User      @relation("UserDonations", fields: [userId], references: [id])
+  userId          String
+  fund            Fund?     @relation("FundDonations", fields: [fundId], references: [id])
+  fundId          String?
+  organization    Organization? @relation("OrganizationDonations", fields: [organizationId], references: [id])
+  organizationId  String?
+  
+  // Note: Application code should ensure either fundId or organizationId is set, but not both
+}
+
+// User favorites (funds, organizations)
+model Favorite {
+  id              String    @id @default(uuid())
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  user            User      @relation("UserFavorites", fields: [userId], references: [id])
+  userId          String
+  fund            Fund?     @relation("FundFavorites", fields: [fundId], references: [id])
+  fundId          String?
+  
+  @@unique([userId, fundId])
+}
