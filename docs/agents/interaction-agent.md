@@ -373,4 +373,4 @@ export const fundCreationMachine = createMachine({
 
 ---
 
-⏱️ Last Updated: [Current Date] 
+⏱️ Last Updated: [Current Date]
