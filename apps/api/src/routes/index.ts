@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { NotFoundError } from '../utils/errors';
+import authRoutes from './auth';
 
 const router = Router();
 
@@ -11,6 +12,9 @@ router.get('/health', (req, res) => {
     service: 'VIBEZ Foundation API'
   });
 });
+
+// Authentication routes
+router.use('/auth', authRoutes);
 
 // Version 1 API routes
 // router.use('/v1/users', userRoutes);

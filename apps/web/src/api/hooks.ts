@@ -3,6 +3,29 @@ import apiClient from './client';
 import { useAppStore } from '../store/useAppStore';
 
 // Type definitions
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+type LoginCredentials = {
+  email: string;
+  password: string;
+};
+
+type RegisterData = {
+  name: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+};
+
+type AuthResponse = {
+  user: User;
+  token: string;
+};
+
 type Fund = {
   id: string;
   name: string;
@@ -20,10 +43,27 @@ type Organization = {
 
 // Query keys
 export const QUERY_KEYS = {
+  USER: 'user',
   FUNDS: 'funds',
   FUND: 'fund',
   ORGANIZATIONS: 'organizations',
   ORGANIZATION: 'organization',
+};
+
+// Auth functions
+const loginUser = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  const { data } = await apiClient.post('/auth/login', credentials);
+  return data;
+};
+
+const registerUser = async (userData: RegisterData): Promise<AuthResponse> => {
+  const { data } = await apiClient.post('/auth/register', userData);
+  return data;
+};
+
+const getCurrentUser = async (): Promise<User> => {
+  const { data } = await apiClient.get('/auth/me');
+  return data.user;
 };
 
 // Query functions
@@ -65,6 +105,71 @@ const donateToFund = async ({
 }): Promise<Fund> => {
   const { data } = await apiClient.post(`/funds/${fundId}/donate`, { amount });
   return data.fund;
+};
+
+// Auth hooks
+export const useLogin = () => {
+  const setUser = useAppStore((state) => state.setUser);
+  const setLoading = useAppStore((state) => state.setLoading);
+  const setError = useAppStore((state) => state.setError);
+  
+  return useMutation(loginUser, {
+    onMutate: () => {
+      setLoading(true);
+      setError(null);
+    },
+    onSuccess: (data) => {
+      localStorage.setItem('auth_token', data.token);
+      setUser(data.user);
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+};
+
+export const useRegister = () => {
+  const setUser = useAppStore((state) => state.setUser);
+  const setLoading = useAppStore((state) => state.setLoading);
+  const setError = useAppStore((state) => state.setError);
+  
+  return useMutation(registerUser, {
+    onMutate: () => {
+      setLoading(true);
+      setError(null);
+    },
+    onSuccess: (data) => {
+      localStorage.setItem('auth_token', data.token);
+      setUser(data.user);
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+};
+
+export const useGetCurrentUser = () => {
+  const setUser = useAppStore((state) => state.setUser);
+  
+  return useQuery(QUERY_KEYS.USER, getCurrentUser, {
+    onSuccess: (data) => {
+      setUser(data);
+    },
+    onError: () => {
+      // Clear user on error (token might be invalid)
+      setUser(null);
+      localStorage.removeItem('auth_token');
+    },
+    // Only run if we have a token
+    enabled: !!localStorage.getItem('auth_token'),
+    retry: false,
+  });
 };
 
 // React Query hooks
