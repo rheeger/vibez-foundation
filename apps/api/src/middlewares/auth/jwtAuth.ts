@@ -1,21 +1,29 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import { Strategy as JwtStrategy, ExtractJwt, StrategyOptions } from 'passport-jwt';
 import { PrismaClient } from '@prisma/client';
 import config from '../../config';
 import logger from '../../utils/logger';
 
 const prisma = new PrismaClient();
 
+// Define JWT payload interface
+interface JwtPayload {
+  id: string;
+  email: string;
+  roles?: string[];
+  [key: string]: any;
+}
+
 // JWT options
-const jwtOptions = {
+const jwtOptions: StrategyOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: config.auth.jwtSecret,
 };
 
 // Configure JWT strategy
 passport.use(
-  new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
+  new JwtStrategy(jwtOptions, async (jwtPayload: JwtPayload, done) => {
     try {
       // Find the user by ID from the JWT payload
       const user = await prisma.user.findUnique({
@@ -54,9 +62,12 @@ passport.use(
   })
 );
 
-// JWT authentication middleware
-export const jwtAuthenticate = (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('jwt', { session: false }, (err: Error, user: any, info: any) => {
+/**
+ * Middleware to authenticate a user using JWT
+ * Attaches the user object to the request if authenticated
+ */
+export const jwtAuthenticate = (req: Request, res: Response, next: NextFunction): void | Response => {
+  passport.authenticate('jwt', { session: false }, (err: Error | null, user: Express.User | false, info: any) => {
     if (err) {
       logger.error('Authentication error:', { error: err.message });
       return next(err);

@@ -31,7 +31,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const appIsLoading = useAppStore((state) => state.isLoading);
   
   const logout = () => {
-    localStorage.removeItem('auth_token');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
     setUser(null);
     router.push('/auth/login');
   };

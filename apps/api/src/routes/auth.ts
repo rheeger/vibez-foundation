@@ -30,7 +30,6 @@ const loginValidation = [
 
 /**
  * Generate JWT token for a user
- * TODO: Fix TypeScript typing issues with jsonwebtoken
  */
 const generateToken = (user: UserWithRoles): string => {
   const payload = {
@@ -39,12 +38,16 @@ const generateToken = (user: UserWithRoles): string => {
     roles: user.roles || ['user'],
   };
 
-  // TypeScript has issues with jsonwebtoken types - using @ts-ignore to bypass for now
-  // This should be fixed properly in a future update
-  // @ts-ignore
-  return jwt.sign(payload, config.auth.jwtSecret, { 
-    expiresIn: config.auth.jwtExpiration 
-  });
+  // Use proper typing for JSON Web Token signing
+  const options: jwt.SignOptions = { 
+    expiresIn: config.auth.jwtExpiration as jwt.SignOptions['expiresIn']
+  };
+  
+  return jwt.sign(
+    payload, 
+    config.auth.jwtSecret, 
+    options
+  );
 };
 
 /**

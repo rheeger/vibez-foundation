@@ -8,10 +8,18 @@ const apiClient = axios.create({
   },
 });
 
+// Safe localStorage access
+const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('auth_token');
+  }
+  return null;
+};
+
 // Add a request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -34,8 +42,10 @@ apiClient.interceptors.response.use(
       
       if (status === 401) {
         // Handle unauthorized - clear local storage and redirect to login
-        localStorage.removeItem('auth_token');
-        window.location.href = '/login';
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+          window.location.href = '/login';
+        }
       }
       
       // Return a more specific error message if available

@@ -4,9 +4,10 @@ import logger from '../../utils/logger';
 /**
  * Middleware to validate if the authenticated user has the required role(s)
  * @param requiredRoles - Array of roles that are allowed to access the route
+ * @returns Express middleware function
  */
-export const validateRole = (requiredRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+export const validateRole = (requiredRoles: string[]): (req: Request, res: Response, next: NextFunction) => void | Response => {
+  return (req: Request, res: Response, next: NextFunction): void | Response => {
     // First check if the user is authenticated
     if (!req.user) {
       return res.status(401).json({
