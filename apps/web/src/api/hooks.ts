@@ -1,6 +1,7 @@
 import { useQuery, useMutation, QueryClient } from 'react-query';
 import apiClient from './client';
 import { useAppStore } from '../store/useAppStore';
+import { useRouter } from 'next/router';
 
 // Type definitions
 type User = {
@@ -142,6 +143,7 @@ const donateToFund = async ({
 
 // Auth hooks
 export const useLogin = () => {
+  const router = useRouter();
   const setUser = useAppStore((state) => state.setUser);
   const setLoading = useAppStore((state) => state.setLoading);
   const setError = useAppStore((state) => state.setError);
@@ -152,8 +154,11 @@ export const useLogin = () => {
       setError(null);
     },
     onSuccess: (data) => {
-      localStorage.setItem('auth_token', data.token);
       setUser(data.user);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', data.token);
+      }
+      router.push('/dashboard');
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -165,6 +170,7 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
+  const router = useRouter();
   const setUser = useAppStore((state) => state.setUser);
   const setLoading = useAppStore((state) => state.setLoading);
   const setError = useAppStore((state) => state.setError);
@@ -175,8 +181,11 @@ export const useRegister = () => {
       setError(null);
     },
     onSuccess: (data) => {
-      localStorage.setItem('auth_token', data.token);
       setUser(data.user);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', data.token);
+      }
+      router.push('/dashboard');
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -197,10 +206,12 @@ export const useGetCurrentUser = () => {
     onError: () => {
       // Clear user on error (token might be invalid)
       setUser(null);
-      localStorage.removeItem('auth_token');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+      }
     },
-    // Only run if we have a token
-    enabled: !!localStorage.getItem('auth_token'),
+    // Only run if we have a token and in browser environment
+    enabled: typeof window !== 'undefined' ? !!localStorage.getItem('auth_token') : false,
     retry: false,
   });
 };
