@@ -13,9 +13,14 @@ export const GlobalStyle = createGlobalStyle`
   }
   
   /* Base styles */
-  html {
+  html, body, #root, #__next {
     font-size: 16px;
     scroll-behavior: smooth;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
   }
   
   body {
