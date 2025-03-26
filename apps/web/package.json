@@ -9,20 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@figliolia/ripples": "^1.0.8",
+    "framer-motion": "^11.0.5",
     "next": "^14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "styled-components": "^6.1.8",
-    "zustand": "^4.5.1",
     "react-query": "^3.39.3",
-    "framer-motion": "^11.0.5"
+    "styled-components": "^6.1.8",
+    "zustand": "^4.5.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
-    "typescript": "^5.3.3",
     "eslint": "^8.56.0",
-    "eslint-config-next": "^14.1.0"
+    "eslint-config-next": "^14.1.0",
+    "typescript": "^5.3.3"
   }
-} 
+}
