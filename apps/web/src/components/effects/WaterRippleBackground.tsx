@@ -5,7 +5,11 @@ import { useAnimation } from '../../contexts/AnimationContext';
 import { useSound } from '../../contexts/SoundContext';
 
 // Define the Ripples type
-type RipplesType = any; // This will be properly typed when dynamically imported
+interface RipplesInterface {
+  drop: (x: number, y: number, radius: number, strength: number) => void;
+  updateSize: () => void;
+  destroy: () => void;
+}
 
 interface WaterRippleBackgroundProps {
   color?: string;
@@ -44,7 +48,7 @@ const FallbackBackground: React.FC<{
   </div>
 );
 
-export const WaterRippleBackground: React.FC<WaterRippleBackgroundProps> = ({
+const WaterRippleBackground: React.FC<WaterRippleBackgroundProps> = ({
   color = '#1A9EE2',
   dropRadius = 20,
   perturbance = 0.015,
@@ -52,7 +56,7 @@ export const WaterRippleBackground: React.FC<WaterRippleBackgroundProps> = ({
   children
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const ripplesInstance = useRef<RipplesType | null>(null);
+  const ripplesInstance = useRef<RipplesInterface | null>(null);
   const ambientRippleTimer = useRef<NodeJS.Timeout | null>(null);
   const multiRippleTimer = useRef<NodeJS.Timeout | null>(null);
   const lastMousePosition = useRef<{ x: number; y: number } | null>(null);
