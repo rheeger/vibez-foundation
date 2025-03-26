@@ -1,20 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../../utils/logger';
 
-// Extend the Express Request type to include user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        roles: string[];
-        [key: string]: any;
-      };
-    }
-  }
-}
-
 /**
  * Middleware to validate if the authenticated user has the required role(s)
  * @param requiredRoles - Array of roles that are allowed to access the route

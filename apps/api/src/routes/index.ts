@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { NotFoundError } from '../utils/errors';
 import authRoutes from './auth';
+import fundsRoutes from './funds';
 
 const router = Router();
 
@@ -17,8 +18,8 @@ router.get('/health', (req, res) => {
 router.use('/auth', authRoutes);
 
 // Version 1 API routes
+router.use('/funds', fundsRoutes);
 // router.use('/v1/users', userRoutes);
-// router.use('/v1/funds', fundRoutes);
 // router.use('/v1/organizations', organizationRoutes);
 // router.use('/v1/donations', donationRoutes);
 

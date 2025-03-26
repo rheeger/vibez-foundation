@@ -7,6 +7,13 @@ type User = {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string;
+  bio?: string;
+  location?: string;
+  preferences?: {
+    notifications: boolean;
+    theme: 'light' | 'dark' | 'system';
+  };
 };
 
 type LoginCredentials = {
@@ -20,6 +27,8 @@ type RegisterData = {
   password: string;
   passwordConfirm: string;
 };
+
+type UpdateProfileData = Partial<Omit<User, 'id'>>;
 
 type AuthResponse = {
   user: User;
@@ -44,6 +53,7 @@ type Organization = {
 // Query keys
 export const QUERY_KEYS = {
   USER: 'user',
+  PROFILE: 'profile',
   FUNDS: 'funds',
   FUND: 'fund',
   ORGANIZATIONS: 'organizations',
@@ -64,6 +74,29 @@ const registerUser = async (userData: RegisterData): Promise<AuthResponse> => {
 const getCurrentUser = async (): Promise<User> => {
   const { data } = await apiClient.get('/auth/me');
   return data.user;
+};
+
+const updateUserProfile = async (profileData: UpdateProfileData): Promise<User> => {
+  const { data } = await apiClient.put('/user/profile', profileData);
+  return data.user;
+};
+
+const updateUserPassword = async (passwordData: {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}): Promise<{ success: boolean; message: string }> => {
+  const { data } = await apiClient.put('/user/password', passwordData);
+  return data;
+};
+
+const uploadUserAvatar = async (formData: FormData): Promise<{ avatarUrl: string }> => {
+  const { data } = await apiClient.post('/user/avatar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return data;
 };
 
 // Query functions
@@ -169,6 +202,76 @@ export const useGetCurrentUser = () => {
     // Only run if we have a token
     enabled: !!localStorage.getItem('auth_token'),
     retry: false,
+  });
+};
+
+// Profile hooks
+export const useUpdateProfile = () => {
+  const queryClient = new QueryClient();
+  const setUser = useAppStore((state) => state.setUser);
+  const setLoading = useAppStore((state) => state.setLoading);
+  const setError = useAppStore((state) => state.setError);
+  
+  return useMutation(updateUserProfile, {
+    onMutate: () => {
+      setLoading(true);
+      setError(null);
+    },
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      queryClient.invalidateQueries(QUERY_KEYS.USER);
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+};
+
+export const useUpdatePassword = () => {
+  const setLoading = useAppStore((state) => state.setLoading);
+  const setError = useAppStore((state) => state.setError);
+  
+  return useMutation(updateUserPassword, {
+    onMutate: () => {
+      setLoading(true);
+      setError(null);
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+};
+
+export const useUploadAvatar = () => {
+  const queryClient = new QueryClient();
+  const setLoading = useAppStore((state) => state.setLoading);
+  const setError = useAppStore((state) => state.setError);
+  const setUser = useAppStore((state) => state.setUser);
+  const user = useAppStore((state) => state.user);
+  
+  return useMutation(uploadUserAvatar, {
+    onMutate: () => {
+      setLoading(true);
+      setError(null);
+    },
+    onSuccess: (data) => {
+      if (user) {
+        setUser({ ...user, avatarUrl: data.avatarUrl } as User);
+      }
+      queryClient.invalidateQueries(QUERY_KEYS.USER);
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
   });
 };
 
